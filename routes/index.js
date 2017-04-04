@@ -4,6 +4,11 @@ const router = express.Router();
 
 /* GET home page. */
 
+router.get('/favicon.ico', function(req, res, next) {
+  res.send("");
+});
+
+
 router.get('/', function(req, res, next) {
   res.render("index");
 });

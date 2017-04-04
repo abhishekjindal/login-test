@@ -4,6 +4,10 @@ const pg = require('pg');
 const path = require('path');
 const connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/todo';
 
+client = {};
+pg.connect(connectionString, (err, thisclient, done) => {
+	client = thisclient;
+})
 
 router.get('/', function(req, res, next) {
 	res.send("you are accessing home auth")
@@ -11,76 +15,52 @@ router.get('/', function(req, res, next) {
 
 router.get('/registersuccess', function(req, res, next) {
 	res.send("successfully signed up");
-})
+});
 
 router.post('/register', function(req, res, next) {
 	const email = req.body.email;
 	const password = req.body.password;
-	
-	pg.connect(connectionString, (err, client, done) => {
-    	// Handle connection errors
-	    if(err) {
-	      done();
-	      console.log(err);
-	      return res.status(500).json({success: false, data: err});
-	    }
-
-	
     // SQL Query > Insert Data
-    	client.query('INSERT INTO login(email, password) values($1, $2)',[email, password]);
-
-	    res.writeHead(301,{
-			"Location" : "registersuccess"
-		});
-		res.end();
-
-  	});
+	client.query('INSERT INTO login(email, password) values($1, $2);',[email, password]);
+	// Response
+    res.writeHead(301,{
+		"Location" : "registersuccess"
+	});
+	res.end();
 });
 
-// router.get('/loginsuccess', function(req, res, next) {
-// 	res.send("successfully logged up");
-// })
+router.get('/loginsuccess', function(req, res, next) {
+	res.send("successfully logged in");
+});
 
 router.post('/login', function(req, res, next) {
 	const email = req.body.email;
 	const password = req.body.password;
 	const results = [];
-	
-	pg.connect(connectionString, (err, client, done) => {
-    // Handle connection errors
-	    if(err) {
-	      done();
-	      console.log(err);
-	      return res.status(500).json({success: false, data: err});
-	    }
+	var loginsuccess = false;
+	 
+    query = client.query('SELECT * FROM login where email=\''+email+'\';');
 
-	// console.log(client.query('SELECT * FROM login WHERE email=$1',[email]));
- 
-    	client.query('SELECT * FROM login WHERE email=$1',[email]);/*, function(err, rows){
-    	if(err){
-    		console.log(err);
-    		res.send(err);
+    query.on('row', (row) => {
+    	if(password == row.password){
+    		loginsuccess = true;
     	}else{
-    		res.json(rows);
+    		res.send("password does not match");
     	}
-
-    });*/
-
- //    res.writeHead(301,{
-	// 	"Location" : "registersuccess"
-	// });
-	// res.end();
-
-	query.on('row', (row) => {
-      results.push(row);
     });
-    // After all data is returned, close connection and return results
+    
+
     query.on('end', () => {
-      done();
-      return res.json(results);
+    	if (!loginsuccess) {
+      		res.send("username does not exist");
+      	}else{
+      		res.writeHead(301,{
+				"Location" : "loginsuccess"
+			});
+			res.end();
+      	}
     });
 
-  });
 });
 
 module.exports = router;
