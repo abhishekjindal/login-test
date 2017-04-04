@@ -1,17 +1,18 @@
 # login-test
 
-Add a database named todo in psql.
-#-create database todo;
+# Add a database named todo in psql.
+create database todo;
 
-Install dependencies
+# Install dependencies
 npm install
 
-To create table
+# To create table
 node models/database.js
 
-Supervisor
+# Supervisor
 npm install supervisor
 
+# Start server
 npm start
 
 
